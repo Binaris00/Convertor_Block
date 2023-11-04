@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "convertor_block:block/convertor" }
+  }
+}
