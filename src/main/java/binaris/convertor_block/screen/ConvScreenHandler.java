@@ -1,4 +1,4 @@
-package binaris.convertor_block;
+package binaris.convertor_block.screen;
 
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;

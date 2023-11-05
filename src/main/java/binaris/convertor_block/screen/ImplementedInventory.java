@@ -1,4 +1,4 @@
-package binaris.convertor_block;
+package binaris.convertor_block.screen;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -7,16 +7,23 @@ import net.minecraft.util.collection.DefaultedList;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * A simple {@code SidedInventory} implementation with only default methods + an item list getter.
+ *
+ * <h2>Reading and writing to tags</h2>
+ * Use {@link Inventories#writeNbt(NbtCompound, DefaultedList)} and {@link Inventories#readNbt(NbtCompound, DefaultedList)}
+ * on {@linkplain #getItems() the item list}.
+ *
+ * License: <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>
+ * @author Juuz
+ */
 /**
  * A simple {@code SidedInventory} implementation with only default methods + an item list getter.
  *

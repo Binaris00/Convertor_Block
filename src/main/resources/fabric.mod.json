@@ -17,14 +17,8 @@
 	"entrypoints": {
 		"main": [
           "binaris.convertor_block.Convertor_BlockModInitializer"
-		],
-		"client": [
-			"binaris.convertor_block.ConvModClient"
 		]
 	},
-	"mixins": [
-		"convertor_block.mixins.json"
-	],
 	"depends": {
 		"fabricloader": ">=0.14.24",
 		"minecraft": "~1.20.2",

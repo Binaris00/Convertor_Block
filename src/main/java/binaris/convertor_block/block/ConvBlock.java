@@ -1,5 +1,6 @@
-package binaris.convertor_block;
+package binaris.convertor_block.block;
 
+import binaris.convertor_block.Convertor_BlockModInitializer;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;

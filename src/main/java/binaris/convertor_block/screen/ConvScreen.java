@@ -1,5 +1,6 @@
-package binaris.convertor_block;
+package binaris.convertor_block.screen;
 
+import binaris.convertor_block.Convertor_BlockModInitializer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
