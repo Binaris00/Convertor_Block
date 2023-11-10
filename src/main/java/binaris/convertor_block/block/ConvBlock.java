@@ -58,7 +58,8 @@ public class ConvBlock extends BlockWithEntity implements BlockEntityProvider {
     }
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return validateTicker(type, Convertor_BlockModInitializer.CONVERTOR_BLOCK_ENTITY, ConvertorBlockEntity::tick);
+        return validateTicker(type, Convertor_BlockModInitializer.CONVERTOR_BLOCK_ENTITY,
+                (world1, pos, state1, blockEntity) -> blockEntity.tick(world1, pos, state1, blockEntity));
     }
     @Nullable
     @Override

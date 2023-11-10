@@ -1,5 +1,6 @@
 package binaris.convertor_block.block;
 
+import binaris.convertor_block.custom_recipe.Probability_Recipe;
 import binaris.convertor_block.screen.ConvScreenHandler;
 import binaris.convertor_block.Convertor_BlockModInitializer;
 import binaris.convertor_block.screen.ImplementedInventory;
@@ -9,9 +10,9 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.PropertyDelegate;
@@ -20,14 +21,18 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class ConvertorBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory {
+import java.util.List;
+import java.util.Random;
+
+public class ConvertorBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, ImplementedInventory, SidedInventory {
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(2, ItemStack.EMPTY);
     protected final PropertyDelegate propertyDelegate;
-    private static int progress = 0;
-    private static int maxProgress = 72;
+    private int progress = 0;
+    private int maxProgress = 156;
 
     private static final int INPUT_SLOT = 0;
     private static final int OUTPUT_SLOT = 1;
@@ -60,25 +65,28 @@ public class ConvertorBlockEntity extends BlockEntity implements ExtendedScreenH
         };
     }
 
-    public static void tick(World world, BlockPos pos, BlockState state, ConvertorBlockEntity co) {
+    public void tick(World world, BlockPos pos, BlockState state, ConvertorBlockEntity co) {
         if(world.isClient()) {
             return;
         }
 
-        if(isOutputSlotEmptyOrReceivable(co)) {
+        if(co.getStack(OUTPUT_SLOT).isEmpty() || co.getStack(OUTPUT_SLOT).getCount() < co.getStack(OUTPUT_SLOT).getMaxCount()) {
             if(hasRecipe(co)) {
-                increaseCraftProgress();
+                this.progress++;
                 markDirty(world, pos, state);
 
-                if(hasCraftingFinished()) {
+                if(this.progress >= maxProgress) {
                     craftItem(co);
-                    resetProgress();
+                    this.progress = 0;
+                    markDirty(world, pos, state);
                 }
             } else {
-                resetProgress();
+                this.progress = 0;
+                markDirty(world, pos, state);
+
             }
         } else {
-            resetProgress();
+            this.progress = 0;
             markDirty(world, pos, state);
         }
 
@@ -126,30 +134,52 @@ public class ConvertorBlockEntity extends BlockEntity implements ExtendedScreenH
         buf.writeBlockPos(this.pos);
     }
 
-    private static void resetProgress() {
-        progress = 0;
+    @Override
+    public int[] getAvailableSlots(Direction side) {
+        // Hopper Utility (IDK why this is util, but I put this for the tutorial)
+        int[] result = new int[getItems().size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = i;
+        }
+
+        return result;
     }
 
-    private static void craftItem(ConvertorBlockEntity co) {
-        co.removeStack(INPUT_SLOT, 1);
-        ItemStack result = new ItemStack(Items.LEATHER);
+    @Override
+    public boolean canInsert(int slot, ItemStack stack, Direction direction) {
+        // Hopper Utility
+        return direction == Direction.UP && slot == 0;
+    }
 
+    @Override
+    public boolean canExtract(int slot, ItemStack stack, Direction direction) {
+        // Hopper Utility
+        return direction == Direction.DOWN && slot == 1;
+    }
+
+
+
+
+    private static void craftItem(ConvertorBlockEntity co) {
+        List<ItemStack> list_result = Probability_Recipe.recipe_list.get(co.getStack(INPUT_SLOT).getItem());
+        Random random = new Random();
+        ItemStack result = list_result.get(random.nextInt(list_result.size()));
+
+        co.removeStack(INPUT_SLOT, 1);
         co.setStack(OUTPUT_SLOT, new ItemStack(result.getItem(), co.getStack(OUTPUT_SLOT).getCount() + result.getCount()));
     }
 
-    private static boolean hasCraftingFinished() {
-        return progress >= maxProgress;
-    }
-
-    private static void increaseCraftProgress() {
-        progress++;
-    }
-
     private static boolean hasRecipe(ConvertorBlockEntity co) {
-        ItemStack result = new ItemStack(Items.LEATHER);
-        boolean hasInput = co.getStack(INPUT_SLOT).getItem() == Items.ROTTEN_FLESH;
+        List<ItemStack> result = Probability_Recipe.recipe_list.get(co.getStack(INPUT_SLOT).getItem());
+        boolean hasInput = Probability_Recipe.recipe_list.containsKey(co.getStack(INPUT_SLOT).getItem());
+        if(result == null){return false;}
 
-        return hasInput && canInsertAmountIntoOutputSlot(result, co) && canInsertItemIntoOutputSlot(result.getItem(), co);
+        for(ItemStack stack : result){
+            if(hasInput && canInsertAmountIntoOutputSlot(stack, co) && canInsertItemIntoOutputSlot(stack.getItem(), co)){
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean canInsertItemIntoOutputSlot(Item item, ConvertorBlockEntity co) {
@@ -158,9 +188,5 @@ public class ConvertorBlockEntity extends BlockEntity implements ExtendedScreenH
 
     private static boolean canInsertAmountIntoOutputSlot(ItemStack result, ConvertorBlockEntity co) {
         return co.getStack(OUTPUT_SLOT).getCount() + result.getCount() <= co.getStack(OUTPUT_SLOT).getMaxCount();
-    }
-
-    private static boolean isOutputSlotEmptyOrReceivable(ConvertorBlockEntity co) {
-        return co.getStack(OUTPUT_SLOT).isEmpty() || co.getStack(OUTPUT_SLOT).getCount() < co.getStack(OUTPUT_SLOT).getMaxCount();
     }
 }
